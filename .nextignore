@@ -1,0 +1,17 @@
+# Next.js build ignore file
+# Add patterns for files you want to ignore during build
+
+# Development files
+*.log
+*.tmp
+*.temp
+
+# Documentation files that should not be built
+USER_GUIDE.md
+README.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

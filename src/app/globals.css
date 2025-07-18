@@ -1,26 +1,116 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    font-family: system-ui, sans-serif;
+  }
+  
+  /* Dark theme (default) */
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .dark body {
+    @apply bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900;
+  }
+  
+  /* Light theme */
+  .light {
+    color-scheme: light;
+  }
+  
+  .light body {
+    @apply bg-gradient-to-br from-green-300 via-emerald-300 to-teal-300;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Glass cards - Dark mode */
+  .dark .glass-card {
+    @apply backdrop-blur-md bg-glass-light border border-glass-border rounded-lg shadow-lg;
+  }
+  
+  .dark .glass-sidebar {
+    @apply backdrop-blur-md bg-glass-dark border-r border-glass-border;
+  }
+  
+  .dark .glass-nav {
+    @apply backdrop-blur-md bg-glass-light border-b border-glass-border;
+  }
+  
+  /* Glass cards - Light mode */
+  .light .glass-card {
+    @apply backdrop-blur-md bg-white/50 border border-emerald-400/70 rounded-lg shadow-lg;
+  }
+  
+  .light .glass-sidebar {
+    @apply backdrop-blur-md bg-white/60 border-r border-emerald-400/70;
+  }
+  
+  .light .glass-nav {
+    @apply backdrop-blur-md bg-white/50 border-b border-emerald-400/70;
+  }
+  
+  /* Base glass classes (fallback for when theme class is not applied yet) */
+  .glass-card {
+    @apply backdrop-blur-md bg-white/10 border border-white/20 rounded-lg shadow-lg;
+  }
+  
+  .glass-sidebar {
+    @apply backdrop-blur-md bg-black/70 border-r border-white/20;
+  }
+  
+  .glass-nav {
+    @apply backdrop-blur-md bg-white/10 border-b border-white/20;
+  }
+  
+  .loading-text {
+    @apply text-gray-300 text-sm animate-pulse;
+  }
+  
+  .light .loading-text {
+    @apply text-gray-800 text-sm animate-pulse;
+  }
+  
+  /* Light mode text colors */
+  .light .text-white {
+    @apply text-gray-900 !important;
+  }
+  
+  .light .text-gray-300 {
+    @apply text-gray-700 !important;
+  }
+  
+  .light .text-gray-200 {
+    @apply text-gray-800 !important;
+  }
+  
+  .light .text-gray-400 {
+    @apply text-gray-600 !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark theme specific styles */
+.dark {
+  color-scheme: dark;
 }

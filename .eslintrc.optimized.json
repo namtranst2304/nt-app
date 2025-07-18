@@ -1,0 +1,21 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "react/no-unescaped-entities": "off",
+    "react/display-name": "off",
+    "@next/next/no-img-element": "warn",
+    "prefer-const": "error",
+    "no-var": "error",
+    "no-console": "warn",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true
+  }
+}
