@@ -42,48 +42,6 @@ export default function WeatherPage() {
     return { status: 'Very Poor', value: 30, color: 'text-red-400' }
   }
 
-  // Generate mock 7-day forecast
-  const generateForecast = (currentTemp) => {
-    const days = ['Today', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu']
-    const icons = [Sun, CloudRain, Cloud, Sun, CloudRain, Sun, Cloud]
-    
-    return days.map((day, index) => ({
-      day,
-      icon: icons[index],
-      high: currentTemp + Math.floor(Math.random() * 6) - 3,
-      low: currentTemp - Math.floor(Math.random() * 8) - 2
-    }))
-  }
-
-  // Generate mock hourly data for chart (every 3 hours)
-  const generateHourlyData = (currentTemp) => {
-    const hours = [0, 3, 6, 9, 12, 15, 18, 21].map(hour => {
-      const displayHour = hour === 0 ? '00:00' : `${hour.toString().padStart(2, '0')}:00`
-      // Create natural temperature variation throughout the day
-      let temp
-      if (hour >= 6 && hour <= 12) {
-        // Morning warming up
-        temp = currentTemp + (hour - 6) * 2 + Math.floor(Math.random() * 3) - 1
-      } else if (hour >= 12 && hour <= 18) {
-        // Afternoon peak
-        temp = currentTemp + 8 + Math.floor(Math.random() * 4) - 2
-      } else if (hour >= 18 && hour <= 21) {
-        // Evening cooling down
-        temp = currentTemp + 6 - (hour - 18) * 2 + Math.floor(Math.random() * 3) - 1
-      } else {
-        // Night/early morning - cooler
-        temp = currentTemp - 5 + Math.floor(Math.random() * 4) - 2
-      }
-      
-      return { 
-        hour: displayHour, 
-        temp: Math.round(temp),
-        icon: hour >= 6 && hour <= 18 ? 'sun' : hour >= 18 && hour <= 21 ? 'cloud' : 'moon'
-      }
-    })
-    return hours
-  }
-
   const fetchWeather = async () => {
     if (!query.trim()) {
       setError('Please enter a location')
@@ -323,23 +281,29 @@ export default function WeatherPage() {
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
                   <h3 className="text-xl font-semibold text-white mb-6">7-Day Forecast</h3>
                   <div className="space-y-4">
-                    {generateForecast(weatherData.current.temperature).map((day, index) => (
-                      <div key={day.day} className="flex items-center justify-between py-3 border-b border-white/10 last:border-b-0">
-                        <div className="flex items-center gap-4 flex-1">
-                          <span className={`text-sm font-medium w-12 ${index === 0 ? 'text-blue-400' : 'text-gray-300'}`}>
-                            {day.day}
-                          </span>
-                          <day.icon className="h-6 w-6 text-gray-300" />
-                          <span className="text-gray-300 text-sm flex-1">
-                            {index === 0 ? weatherData.current.weather_descriptions[0] : 'Partly Cloudy'}
-                          </span>
+                    {weatherData.forecast?.map((day, index) => {
+                      const IconComponent = day.icon === 'sun' ? Sun : 
+                                          day.icon === 'rain' ? CloudRain : 
+                                          day.icon === 'cloud' ? Cloud : Sun
+                      
+                      return (
+                        <div key={day.day} className="flex items-center justify-between py-3 border-b border-white/10 last:border-b-0">
+                          <div className="flex items-center gap-4 flex-1">
+                            <span className={`text-sm font-medium w-12 ${index === 0 ? 'text-blue-400' : 'text-gray-300'}`}>
+                              {day.day}
+                            </span>
+                            <IconComponent className="h-6 w-6 text-gray-300" />
+                            <span className="text-gray-300 text-sm flex-1">
+                              {index === 0 ? weatherData.current.weather_descriptions[0] : day.description}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 text-white">
+                            <span className="font-medium">{day.high}°</span>
+                            <span className="text-gray-400">{day.low}°</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3 text-white">
-                          <span className="font-medium">{day.high}°</span>
-                          <span className="text-gray-400">{day.low}°</span>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -354,7 +318,7 @@ export default function WeatherPage() {
                   </div>
                   
                   <SimpleTemperatureChart 
-                    hourlyData={generateHourlyData(weatherData.current.temperature)} 
+                    hourlyData={weatherData.hourly || []} 
                   />
                 </div>
               </div>
