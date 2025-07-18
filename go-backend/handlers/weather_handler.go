@@ -12,70 +12,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// WeatherHandler handles weather-related requests
 type WeatherHandler struct{}
 
-// generateForecast creates 7-day forecast data based on current temperature
-func generateForecast(currentTemp int) []ForecastDay {
-	days := []string{"Today", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu"}
-	icons := []string{"sun", "rain", "cloud", "sun", "rain", "sun", "cloud"}
-	descriptions := []string{"Partly Cloudy", "Light Rain", "Cloudy", "Sunny", "Rain Showers", "Clear", "Overcast"}
-
-	forecast := make([]ForecastDay, 7)
-	for i, day := range days {
-		forecast[i] = ForecastDay{
-			Day:  day,
-			Icon: icons[i],
-			High: currentTemp + rand.Intn(6) - 3,
-			Low:  currentTemp - rand.Intn(8) - 2,
-			Desc: descriptions[i],
-		}
-	}
-	return forecast
+// NewWeatherHandler creates a new WeatherHandler instance
+func NewWeatherHandler() *WeatherHandler {
+	return &WeatherHandler{}
 }
 
-// generateHourlyData creates hourly temperature data for today
-func generateHourlyData(currentTemp int) []HourlyData {
-	hours := []int{0, 3, 6, 9, 12, 15, 18, 21}
-	hourlyData := make([]HourlyData, len(hours))
-
-	for i, hour := range hours {
-		displayHour := fmt.Sprintf("%02d:00", hour)
-
-		// Create natural temperature variation throughout the day
-		var temp int
-		if hour >= 6 && hour <= 12 {
-			// Morning warming up
-			temp = currentTemp + (hour-6)*2 + rand.Intn(3) - 1
-		} else if hour >= 12 && hour <= 18 {
-			// Afternoon peak
-			temp = currentTemp + 8 + rand.Intn(4) - 2
-		} else if hour >= 18 && hour <= 21 {
-			// Evening cooling down
-			temp = currentTemp + 6 - (hour-18)*2 + rand.Intn(3) - 1
-		} else {
-			// Night/early morning - cooler
-			temp = currentTemp - 5 + rand.Intn(4) - 2
-		}
-
-		var icon string
-		if hour >= 6 && hour <= 18 {
-			icon = "sun"
-		} else if hour >= 18 && hour <= 21 {
-			icon = "cloud"
-		} else {
-			icon = "moon"
-		}
-
-		hourlyData[i] = HourlyData{
-			Hour: displayHour,
-			Temp: temp,
-			Icon: icon,
-		}
-	}
-
-	return hourlyData
-}
-
+// WeatherResponse represents the complete weather API response
 type WeatherResponse struct {
 	Location LocationData  `json:"location"`
 	Current  CurrentData   `json:"current"`
@@ -84,12 +29,14 @@ type WeatherResponse struct {
 	Error    *ErrorData    `json:"error,omitempty"`
 }
 
+// ErrorData represents API error information
 type ErrorData struct {
 	Code int    `json:"code"`
 	Type string `json:"type"`
 	Info string `json:"info"`
 }
 
+// LocationData represents location information
 type LocationData struct {
 	Name           string `json:"name"`
 	Country        string `json:"country"`
@@ -102,6 +49,7 @@ type LocationData struct {
 	UtcOffset      string `json:"utc_offset"`
 }
 
+// CurrentData represents current weather conditions
 type CurrentData struct {
 	ObservationTime string   `json:"observation_time"`
 	Temperature     int      `json:"temperature"`
@@ -121,6 +69,7 @@ type CurrentData struct {
 	IsDay           string   `json:"is_day"`
 }
 
+// ForecastDay represents a single day forecast
 type ForecastDay struct {
 	Day  string `json:"day"`
 	Icon string `json:"icon"`
@@ -129,6 +78,7 @@ type ForecastDay struct {
 	Desc string `json:"description"`
 }
 
+// HourlyData represents hourly weather data
 type HourlyData struct {
 	Hour string `json:"hour"`
 	Temp int    `json:"temp"`
@@ -191,9 +141,71 @@ func (h *WeatherHandler) GetWeather(c *fiber.Ctx) error {
 	}
 
 	// Generate forecast and hourly data based on current temperature
-	weatherData.Forecast = generateForecast(weatherData.Current.Temperature)
-	weatherData.Hourly = generateHourlyData(weatherData.Current.Temperature)
+	weatherData.Forecast = h.generateForecast(weatherData.Current.Temperature)
+	weatherData.Hourly = h.generateHourlyData(weatherData.Current.Temperature)
 
 	// Return successful response with all data
 	return c.JSON(weatherData)
+}
+
+// generateForecast creates 7-day forecast data based on current temperature
+func (h *WeatherHandler) generateForecast(currentTemp int) []ForecastDay {
+	days := []string{"Today", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu"}
+	icons := []string{"sun", "rain", "cloud", "sun", "rain", "sun", "cloud"}
+	descriptions := []string{"Partly Cloudy", "Light Rain", "Cloudy", "Sunny", "Rain Showers", "Clear", "Overcast"}
+
+	forecast := make([]ForecastDay, 7)
+	for i, day := range days {
+		forecast[i] = ForecastDay{
+			Day:  day,
+			Icon: icons[i],
+			High: currentTemp + rand.Intn(6) - 3,
+			Low:  currentTemp - rand.Intn(8) - 2,
+			Desc: descriptions[i],
+		}
+	}
+	return forecast
+}
+
+// generateHourlyData creates hourly temperature data for today
+func (h *WeatherHandler) generateHourlyData(currentTemp int) []HourlyData {
+	hours := []int{0, 3, 6, 9, 12, 15, 18, 21}
+	hourlyData := make([]HourlyData, len(hours))
+
+	for i, hour := range hours {
+		displayHour := fmt.Sprintf("%02d:00", hour)
+
+		// Create natural temperature variation throughout the day
+		var temp int
+		if hour >= 6 && hour <= 12 {
+			// Morning warming up
+			temp = currentTemp + (hour-6)*2 + rand.Intn(3) - 1
+		} else if hour >= 12 && hour <= 18 {
+			// Afternoon peak
+			temp = currentTemp + 8 + rand.Intn(4) - 2
+		} else if hour >= 18 && hour <= 21 {
+			// Evening cooling down
+			temp = currentTemp + 6 - (hour-18)*2 + rand.Intn(3) - 1
+		} else {
+			// Night/early morning - cooler
+			temp = currentTemp - 5 + rand.Intn(4) - 2
+		}
+
+		var icon string
+		if hour >= 6 && hour <= 18 {
+			icon = "sun"
+		} else if hour >= 18 && hour <= 21 {
+			icon = "cloud"
+		} else {
+			icon = "moon"
+		}
+
+		hourlyData[i] = HourlyData{
+			Hour: displayHour,
+			Temp: temp,
+			Icon: icon,
+		}
+	}
+
+	return hourlyData
 }

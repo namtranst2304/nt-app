@@ -15,7 +15,7 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	productHandler := handlers.NewProductHandler(db)
 	orderHandler := handlers.NewOrderHandler(db)
 	commentHandler := handlers.NewCommentHandler(db)
-	weatherHandler := &handlers.WeatherHandler{}
+	weatherHandler := handlers.NewWeatherHandler()
 
 	// API v1 routes
 	api := app.Group("/api/v1")
