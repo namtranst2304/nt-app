@@ -3,11 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -22,11 +20,10 @@ func NewWeatherHandler() *WeatherHandler {
 
 // WeatherResponse represents the complete weather API response
 type WeatherResponse struct {
-	Location LocationData  `json:"location"`
-	Current  CurrentData   `json:"current"`
-	Forecast []ForecastDay `json:"forecast"`
-	Hourly   []HourlyData  `json:"hourly"`
-	Error    *ErrorData    `json:"error,omitempty"`
+	Location LocationData              `json:"location"`
+	Current  CurrentData               `json:"current"`
+	Forecast map[string]ForecastDayRaw `json:"forecast"`
+	Error    *ErrorData                `json:"error,omitempty"`
 }
 
 // ErrorData represents API error information
@@ -70,12 +67,15 @@ type CurrentData struct {
 }
 
 // ForecastDay represents a single day forecast
-type ForecastDay struct {
-	Day  string `json:"day"`
-	Icon string `json:"icon"`
-	High int    `json:"high"`
-	Low  int    `json:"low"`
-	Desc string `json:"description"`
+
+// ForecastDayRaw dùng để parse dữ liệu thô từ Weatherstack
+type ForecastDayRaw struct {
+	Date    string `json:"date"`
+	Maxtemp int    `json:"maxtemp"`
+	Mintemp int    `json:"mintemp"`
+	Avgtemp int    `json:"avgtemp"`
+	UvIndex int    `json:"uv_index"`
+	// Có thể bổ sung các trường khác nếu frontend cần
 }
 
 // HourlyData represents hourly weather data
@@ -85,11 +85,8 @@ type HourlyData struct {
 	Icon string `json:"icon"`
 }
 
-// GetWeather fetches weather data for a given location
+// GetWeather fetches weather data for a given location (dùng forecast endpoint)
 func (h *WeatherHandler) GetWeather(c *fiber.Ctx) error {
-	// Seed random number generator
-	rand.Seed(time.Now().UnixNano())
-
 	query := c.Query("location")
 	if query == "" {
 		return c.Status(400).JSON(fiber.Map{
@@ -97,7 +94,6 @@ func (h *WeatherHandler) GetWeather(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get API key from environment variable
 	apiKey := os.Getenv("WEATHER_API_KEY")
 	if apiKey == "" {
 		return c.Status(500).JSON(fiber.Map{
@@ -105,11 +101,9 @@ func (h *WeatherHandler) GetWeather(c *fiber.Ctx) error {
 		})
 	}
 
-	// Build WeatherStack API URL
-	apiURL := fmt.Sprintf("http://api.weatherstack.com/current?access_key=%s&query=%s",
+	apiURL := fmt.Sprintf("http://api.weatherstack.com/forecast?access_key=%s&query=%s&forecast_days=7",
 		apiKey, url.QueryEscape(query))
 
-	// Make HTTP request to WeatherStack API
 	resp, err := http.Get(apiURL)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -118,94 +112,29 @@ func (h *WeatherHandler) GetWeather(c *fiber.Ctx) error {
 	}
 	defer resp.Body.Close()
 
-	// Check HTTP status
 	if resp.StatusCode != 200 {
 		return c.Status(500).JSON(fiber.Map{
 			"error": fmt.Sprintf("External API returned status: %d", resp.StatusCode),
 		})
 	}
 
-	// Parse response
-	var weatherData WeatherResponse
-	if err := json.NewDecoder(resp.Body).Decode(&weatherData); err != nil {
+	var raw map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Failed to parse weather data",
 		})
 	}
 
-	// Check if API returned an error
-	if weatherData.Error != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": weatherData.Error.Info,
-		})
+	// Check for error field in raw response
+	if errObj, ok := raw["error"].(map[string]interface{}); ok {
+		if info, ok := errObj["info"].(string); ok {
+			return c.Status(400).JSON(fiber.Map{"error": info})
+		}
+		return c.Status(400).JSON(fiber.Map{"error": "Weather API error"})
 	}
 
-	// Generate forecast and hourly data based on current temperature
-	weatherData.Forecast = h.generateForecast(weatherData.Current.Temperature)
-	weatherData.Hourly = h.generateHourlyData(weatherData.Current.Temperature)
+	// Lấy ngày hôm nay theo localtime (không cần dùng nữa)
 
-	// Return successful response with all data
-	return c.JSON(weatherData)
-}
-
-// generateForecast creates 7-day forecast data based on current temperature
-func (h *WeatherHandler) generateForecast(currentTemp int) []ForecastDay {
-	days := []string{"Today", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu"}
-	icons := []string{"sun", "rain", "cloud", "sun", "rain", "sun", "cloud"}
-	descriptions := []string{"Partly Cloudy", "Light Rain", "Cloudy", "Sunny", "Rain Showers", "Clear", "Overcast"}
-
-	forecast := make([]ForecastDay, 7)
-	for i, day := range days {
-		forecast[i] = ForecastDay{
-			Day:  day,
-			Icon: icons[i],
-			High: currentTemp + rand.Intn(6) - 3,
-			Low:  currentTemp - rand.Intn(8) - 2,
-			Desc: descriptions[i],
-		}
-	}
-	return forecast
-}
-
-// generateHourlyData creates hourly temperature data for today
-func (h *WeatherHandler) generateHourlyData(currentTemp int) []HourlyData {
-	hours := []int{0, 3, 6, 9, 12, 15, 18, 21}
-	hourlyData := make([]HourlyData, len(hours))
-
-	for i, hour := range hours {
-		displayHour := fmt.Sprintf("%02d:00", hour)
-
-		// Create natural temperature variation throughout the day
-		var temp int
-		if hour >= 6 && hour <= 12 {
-			// Morning warming up
-			temp = currentTemp + (hour-6)*2 + rand.Intn(3) - 1
-		} else if hour >= 12 && hour <= 18 {
-			// Afternoon peak
-			temp = currentTemp + 8 + rand.Intn(4) - 2
-		} else if hour >= 18 && hour <= 21 {
-			// Evening cooling down
-			temp = currentTemp + 6 - (hour-18)*2 + rand.Intn(3) - 1
-		} else {
-			// Night/early morning - cooler
-			temp = currentTemp - 5 + rand.Intn(4) - 2
-		}
-
-		var icon string
-		if hour >= 6 && hour <= 18 {
-			icon = "sun"
-		} else if hour >= 18 && hour <= 21 {
-			icon = "cloud"
-		} else {
-			icon = "moon"
-		}
-
-		hourlyData[i] = HourlyData{
-			Hour: displayHour,
-			Temp: temp,
-			Icon: icon,
-		}
-	}
-
-	return hourlyData
+	// Trả về toàn bộ các trường, không xử lý gì thêm
+	return c.JSON(raw)
 }

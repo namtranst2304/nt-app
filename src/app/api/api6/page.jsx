@@ -8,6 +8,36 @@ import {
 } from 'lucide-react'
 
 export default function WeatherPage() {
+  // Helper to get Unsplash background image based on weather description
+  const getBgImage = (desc) => {
+    if (!desc) return defaultImg;
+    const d = desc.toLowerCase();
+    if (d.includes('sunny') || d.includes('clear')) return sunImg;
+    if (d.includes('rain')) return rainImg;
+    if (d.includes('cloud')) return cloudImg;
+    if (d.includes('snow')) return snowImg;
+    if (d.includes('storm') || d.includes('thunder')) return stormImg;
+    return defaultImg;
+  };
+
+  // Unsplash images for different weather
+  const defaultImg = 'url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80)'; // núi trời xanh
+  const sunImg = 'url(https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80)'; // nắng vàng
+  const rainImg = 'url(https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80)'; // mưa
+  const cloudImg = 'url(https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?auto=format&fit=crop&w=1200&q=80)'; // nhiều mây
+  const snowImg = 'url(https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80)'; // tuyết
+  const stormImg = 'url(https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=80)'; // giông bão
+  // Helper to get background gradient based on weather description
+  const getBgGradient = (desc) => {
+    if (!desc) return 'from-slate-900 via-blue-900 to-slate-800';
+    const d = desc.toLowerCase();
+    if (d.includes('sunny') || d.includes('clear')) return 'from-yellow-200 via-yellow-400 to-orange-500';
+    if (d.includes('rain')) return 'from-blue-900 via-blue-600 to-blue-400';
+    if (d.includes('cloud')) return 'from-gray-700 via-gray-500 to-gray-300';
+    if (d.includes('snow')) return 'from-blue-200 via-white to-blue-400';
+    if (d.includes('storm') || d.includes('thunder')) return 'from-gray-800 via-purple-700 to-yellow-400';
+    return 'from-slate-900 via-blue-900 to-slate-800';
+  };
   const [query, setQuery] = useState('Ho Chi Minh City')
   const [weatherData, setWeatherData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -189,23 +219,28 @@ export default function WeatherPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background with mountain image effect */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800"
+      {/* Dynamic background gradient and Unsplash image based on weather */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${getBgGradient(weatherData?.current?.weather_descriptions?.[0])}`}
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='mountain' x='0' y='0' width='100' height='100' patternUnits='userSpaceOnUse'%3E%3Cpath d='M0 100L25 50L50 75L75 25L100 50L100 100Z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23mountain)'/%3E%3C/svg%3E")`,
-          backgroundSize: '200px 200px'
+          backgroundImage: getBgImage(weatherData?.current?.weather_descriptions?.[0]),
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 1
         }}
       />
-      
+      {/* Overlay to darken background for better text contrast */}
+      <div className="absolute inset-0 bg-black/40 pointer-events-none z-0" />
+
       <div className="relative z-10 p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
           {/* Header with Search */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
                 <Activity className="h-8 w-8 text-blue-400" />
-                Lively Weather (Beta)
+                Lively Weather
               </h1>
             </div>
             
@@ -257,6 +292,9 @@ export default function WeatherPage() {
                           month: 'long', 
                           day: 'numeric' 
                         })}
+                      </p>
+                      <p className="text-gray-400">
+                        Local time: {new Date(weatherData.location.localtime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -404,12 +442,44 @@ export default function WeatherPage() {
                     <Activity className="h-6 w-6 text-green-400" />
                     <span className="text-lg font-medium text-white">Air Quality</span>
                   </div>
-                  <div className="text-4xl font-light text-white mb-2">
-                    {getAirQualityStatus(weatherData.current.visibility).value}
-                  </div>
-                  <div className={`text-sm ${getAirQualityStatus(weatherData.current.visibility).color}`}>
-                    {getAirQualityStatus(weatherData.current.visibility).status}
-                  </div>
+                  {weatherData.air_quality ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-white text-sm">
+                        <span>CO</span>
+                        <span>{weatherData.air_quality.co}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>NO₂</span>
+                        <span>{weatherData.air_quality.no2}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>O₃</span>
+                        <span>{weatherData.air_quality.o3}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>SO₂</span>
+                        <span>{weatherData.air_quality.so2}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>PM2.5</span>
+                        <span>{weatherData.air_quality.pm2_5}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>PM10</span>
+                        <span>{weatherData.air_quality.pm10}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>US-EPA Index</span>
+                        <span>{weatherData.air_quality["us-epa-index"]}</span>
+                      </div>
+                      <div className="flex justify-between text-white text-sm">
+                        <span>GB-DEFRA Index</span>
+                        <span>{weatherData.air_quality["gb-defra-index"]}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-400">No air quality data</div>
+                  )}
                 </div>
 
                 {/* Pressure */}
@@ -433,6 +503,18 @@ export default function WeatherPage() {
               </div>
             </div>
           ) : null}
+
+          {/* Debug JSON Table */}
+          {weatherData && (
+            <div className="mt-8">
+              <details className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-white" open>
+                <summary className="cursor-pointer font-semibold text-blue-300 mb-2">Xem toàn bộ JSON trả về từ backend</summary>
+                <pre className="overflow-x-auto text-xs text-white/90 bg-black/30 p-3 rounded-lg max-h-96">
+                  {JSON.stringify(weatherData, null, 2)}
+                </pre>
+              </details>
+            </div>
+          )}
         </div>
       </div>
     </div>
