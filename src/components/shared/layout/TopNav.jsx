@@ -60,7 +60,8 @@ const TopNav = () => {
                 {tab.label}
               </button>
             ))}
-          </div>{/* Right Actions */}          <div className="flex items-center gap-3">
+          </div>{/* Right Actions */}
+          <div className="flex items-center gap-3">
             {/* Help Button */}
             <button
               onClick={showShortcuts}
@@ -69,9 +70,6 @@ const TopNav = () => {
             >
               <HelpCircle className="w-4 h-4" />
             </button>
-
-            {/* Theme Toggle */}
-            <ThemeToggle />
 
             {/* Notifications */}
             <button className="btn-glass p-2 rounded-lg relative">
@@ -85,6 +83,11 @@ const TopNav = () => {
             <button className="btn-glass p-2 rounded-lg">
               <User className="w-4 h-4" />
             </button>
+
+            {/* Theme Toggle - moved to far right */}
+            <div className="ml-2">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </motion.div>

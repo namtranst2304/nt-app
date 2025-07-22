@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { 
   Search, Droplets, Wind, Eye, Sun, Moon,
   Cloud, CloudRain, CloudSnow, CloudDrizzle, Zap, Gauge,
-  Activity, BarChart3, TrendingUp
+  Activity, BarChart3, TrendingUp, ArrowLeft
 } from 'lucide-react'
 
 export default function WeatherPage() {
@@ -234,6 +235,13 @@ export default function WeatherPage() {
       <div className="absolute inset-0 bg-black/40 pointer-events-none z-0" />
 
       <div className="relative z-10 p-6">
+        {/* Back Button to Main Page */}
+        <div className="mb-6">
+          <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl glass-card bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-colors shadow">
+            <ArrowLeft className="h-5 w-5 text-blue-300" />
+            <span className="font-medium">Back</span>
+          </Link>
+        </div>
         <div className="max-w-7xl mx-auto text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
           {/* Header with Search */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
