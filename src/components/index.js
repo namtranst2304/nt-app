@@ -1,7 +1,6 @@
 // Shared components exports
 export * from './shared/layout';
 export * from './shared/ui';
-export * from './shared/modals';
 export * from './shared/navigation';
 
 // Feature components exports

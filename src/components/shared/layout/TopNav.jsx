@@ -5,12 +5,11 @@ import { motion } from 'framer-motion';
 import { Search, Bell, User, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import useAppStore from '@/lib/store/useAppStore';
-import SearchModal from '../modals/SearchModal';
 import { ThemeToggle } from '@/components/shared/ui';
 
 const TopNav = () => {
   const { activeTab, setActiveTab } = useAppStore();
-  const [searchQuery, setSearchQuery] = useState('');  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const showShortcuts = () => {
     window.dispatchEvent(new CustomEvent('show-shortcuts'));
@@ -43,11 +42,11 @@ const TopNav = () => {
                 placeholder="Search videos, playlists..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchModalOpen(true)}
                 className="input-glass w-full pl-10 pr-4 py-2 transition-all"
               />
             </div>
-          </div>              {/* Navigation Tabs */}
+          </div>              
+          {/* Navigation Tabs */}
           <div className="nav-tab-container flex items-center gap-1 rounded-full p-1">
             {tabs.map((tab) => (
               <button
@@ -60,7 +59,8 @@ const TopNav = () => {
                 {tab.label}
               </button>
             ))}
-          </div>{/* Right Actions */}
+          </div>
+          {/* Right Actions */}
           <div className="flex items-center gap-3">
             {/* Help Button */}
             <button
@@ -92,7 +92,8 @@ const TopNav = () => {
         </div>
       </motion.div>
 
-      {/* Search Modal */}
+      {/* Search Modal - Temporarily disabled */}
+      {/* 
       <SearchModal 
         isOpen={isSearchModalOpen}
         onClose={() => {
@@ -100,6 +101,7 @@ const TopNav = () => {
           setSearchQuery('');
         }}
       />
+      */}
     </>
   );
 };

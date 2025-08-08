@@ -2,7 +2,6 @@
 
 import { MainNavigation, SecondaryNavigation } from '@/components/shared/navigation'
 import { NotificationSystem, FloatingActionButton, ErrorBoundary } from '@/components/shared/ui'
-import { KeyboardShortcutsModal } from '@/components/shared/modals'
 import { PiPPlayer } from '@/components/features/player'
 import { useState } from 'react'
 import useAppStore from '@/lib/store/useAppStore'
@@ -34,11 +33,13 @@ export default function AppLayout({ children }) {
         <NotificationSystem />
         <FloatingActionButton />
         
-        {/* Modals */}
+        {/* Modals - Temporarily disabled */}
+        {/*
         <KeyboardShortcutsModal 
           isOpen={showShortcuts}
           onClose={() => setShowShortcuts(false)}
         />
+        */}
       </ErrorBoundary>
     </div>
   )

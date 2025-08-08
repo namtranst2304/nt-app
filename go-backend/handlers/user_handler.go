@@ -23,29 +23,54 @@ func NewUserHandler(db *gorm.DB) *UserHandler {
 // 🔐 Register
 // =========================
 func (h *UserHandler) Register(c *fiber.Ctx) error {
-	var userData models.User
-	if err := c.BodyParser(&userData); err != nil {
+	type RegisterInput struct {
+		Username  string `json:"username"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
+
+	var input RegisterInput
+	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 	}
+
 	// Log giá trị password nhận được từ frontend
-	fmt.Printf("[DEBUG] Register received password: '%s'\n", userData.Password)
+	fmt.Printf("[DEBUG] Register received - Username: '%s', Email: '%s', Password: '%s'\n", input.Username, input.Email, input.Password)
+
 	// Kiểm tra username và password không được rỗng
-	if userData.Username == "" || userData.Password == "" {
+	if input.Username == "" || input.Password == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "Username and password are required"})
+	}
+
+	// If email is empty, use username as email for testing
+	if input.Email == "" {
+		input.Email = input.Username + "@example.com"
 	}
 
 	// Kiểm tra trùng email hoặc username
 	var existing models.User
-	if err := h.db.Where("email = ? OR username = ?", userData.Email, userData.Username).First(&existing).Error; err == nil {
+	if err := h.db.Where("email = ? OR username = ?", input.Email, input.Username).First(&existing).Error; err == nil {
 		return c.Status(409).JSON(fiber.Map{"error": "User already exists"})
 	}
 
 	// Hash password
-	hashed, err := utils.HashPassword(userData.Password)
+	hashed, err := utils.HashPassword(input.Password)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash password"})
 	}
-	userData.Password = hashed
+
+	// Create user model
+	userData := models.User{
+		Username:  input.Username,
+		Email:     input.Email,
+		Password:  hashed,
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Role:      "user",
+		IsActive:  true,
+	}
 
 	if err := h.db.Create(&userData).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create user"})
