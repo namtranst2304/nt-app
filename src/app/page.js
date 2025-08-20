@@ -47,7 +47,8 @@ const SettingsRouter = dynamic(() => import('@/components/features/settings/Sett
 export default function HomePage() {
   // State and hooks
   const { activeTab, setActiveTab } = useAppStore()
-  const [user, setUser] = useState(null)
+  // TEMPORARILY BYPASS LOGIN - Set default user to skip authentication
+  const [user, setUser] = useState({ username: 'guest', bypassed: true })
   const [showRegister, setShowRegister] = useState(false)
 
   // Keyboard shortcuts for navigation
