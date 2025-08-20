@@ -148,3 +148,39 @@ func (ae *AnalyticsEvent) BeforeCreate(tx *gorm.DB) error {
 	}
 	return nil
 }
+
+// CVE Vulnerability models
+type CWE struct {
+	Title    string `json:"title"`
+	InfoLink string `json:"info_link"`
+}
+
+type CVE struct {
+	ID                 uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	VulnID             string     `json:"vuln_id" gorm:"not null"`
+	Source             string     `json:"source"`
+	Aliases            string     `json:"aliases"`
+	Published          time.Time  `json:"published"`
+	Description        string     `json:"description" gorm:"type:text"`
+	CWEs               []CWE      `json:"cwes" gorm:"type:json"`
+	References         string     `json:"references" gorm:"type:text"`
+	Severity           string     `json:"severity"`
+	Analysis           string     `json:"analysis" gorm:"type:text"`
+	Suppressed         string     `json:"suppressed"`
+	CvssV3ImpactScore  float64    `json:"cvss_v3_impact_score"`
+	CvssV3BaseScore    float64    `json:"cvss_v3_base_score"`
+	CvssV3ExploitScore float64    `json:"cvss_v3_exploit_score"`
+	EpssScore          float64    `json:"epssscore"`
+	EpssPercentile     float64    `json:"epsspercentile"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at"`
+	DeletedAt          *time.Time `json:"deleted_at" gorm:"index"`
+}
+
+// BeforeCreate hook for CVE model
+func (c *CVE) BeforeCreate(tx *gorm.DB) error {
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
+	}
+	return nil
+}

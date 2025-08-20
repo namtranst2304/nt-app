@@ -50,5 +50,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.Order{},
 		&models.OrderItem{},
 		&models.AnalyticsEvent{},
+		&models.CVE{},
 	)
 }

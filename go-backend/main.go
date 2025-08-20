@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"go-backend/config"
-	"go-backend/database"
+	// "go-backend/database" // Temporarily disabled
 	"go-backend/routes"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,11 +23,13 @@ func main() {
 	// Initialize configuration
 	cfg := config.Load()
 
-	// Initialize database
-	db, err := database.Connect(cfg)
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
+	// Initialize database - TEMPORARILY DISABLED for weather API testing
+	/*
+		db, err := database.Connect(cfg)
+		if err != nil {
+			log.Fatal("Failed to connect to database:", err)
+		}
+	*/
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -51,8 +53,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// Routes
-	routes.SetupRoutes(app, db)
+	// Routes - pass nil for database since we're testing weather API only
+	routes.SetupRoutes(app, nil)
 
 	// Start server
 	port := os.Getenv("PORT")

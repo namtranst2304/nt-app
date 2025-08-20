@@ -14,7 +14,7 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	analyticsHandler := handlers.NewAnalyticsHandler(db)
 	productHandler := handlers.NewProductHandler(db)
 	orderHandler := handlers.NewOrderHandler(db)
-	commentHandler := handlers.NewCommentHandler(db)
+	// commentHandler := handlers.NewCommentHandler(db) // Replaced with music API
 	weatherHandler := handlers.NewWeatherHandler()
 
 	// API v1 routes
@@ -62,17 +62,44 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	orders.Put("/:id", orderHandler.UpdateOrder)
 	orders.Delete("/:id", orderHandler.DeleteOrder)
 
-	// Communication (API 5)
-	comments := api.Group("/comments")
-	comments.Get("/", commentHandler.GetComments)
-	comments.Post("/", commentHandler.CreateComment)
-	comments.Get("/:id", commentHandler.GetComment)
-	comments.Put("/:id", commentHandler.UpdateComment)
-	comments.Delete("/:id", commentHandler.DeleteComment)
+	// Communication (API 5) - Replaced with Music API
+	musicHandler := handlers.NewMusicHandler()
+
+	// Music API endpoints following Spotify Web API structure
+	music := api.Group("/music")
+
+	// Artists
+	artists := music.Group("/artists")
+	artists.Get("/", musicHandler.GetArtists)   // GET /api/v1/music/artists?ids=1,2,3
+	artists.Get("/:id", musicHandler.GetArtist) // GET /api/v1/music/artists/{id}
+
+	// Albums
+	albums := music.Group("/albums")
+	albums.Get("/", musicHandler.GetAlbums)   // GET /api/v1/music/albums?ids=1,2,3
+	albums.Get("/:id", musicHandler.GetAlbum) // GET /api/v1/music/albums/{id}
+
+	// Tracks
+	tracks := music.Group("/tracks")
+	tracks.Get("/", musicHandler.GetTracks)   // GET /api/v1/music/tracks?ids=1,2,3
+	tracks.Get("/:id", musicHandler.GetTrack) // GET /api/v1/music/tracks/{id}
+
+	// Search
+	search := music.Group("/search")
+	search.Get("/", musicHandler.SearchMusic) // GET /api/v1/music/search?q=query&type=track,artist,album
 
 	// Weather (API 6)
 	weather := api.Group("/weather")
 	weather.Get("/", weatherHandler.GetWeather)
+
+	// CVE Vulnerability Management (API 5 - New Implementation)
+	cve := api.Group("/cve")
+	cve.Get("/", handlers.GetAllCVEs)         // GET /api/v1/cve
+	cve.Get("/mock", handlers.GetCVEMockData) // GET /api/v1/cve/mock
+	cve.Get("/stats", handlers.GetCVEStats)   // GET /api/v1/cve/stats
+	cve.Post("/", handlers.CreateCVE)         // POST /api/v1/cve
+	cve.Get("/:id", handlers.GetCVEByID)      // GET /api/v1/cve/{id}
+	cve.Put("/:id", handlers.UpdateCVE)       // PUT /api/v1/cve/{id}
+	cve.Delete("/:id", handlers.DeleteCVE)    // DELETE /api/v1/cve/{id}
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
