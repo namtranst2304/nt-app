@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Tabs, Spin, Alert, Tag } from "antd";
+import { Card, Tabs, Spin, Alert, Row, Col, Space, Typography, Flex } from "antd";
 import { BugOutlined, SafetyOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { cveApi } from "@/lib/api/cve";
@@ -59,79 +59,89 @@ export default function CVEPage() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Spin size="large" />
-        <div style={{ marginTop: 16 }}>Loading CVE information...</div>
-      </div>
+      <Flex justify="center" align="center" style={{ padding: 50 }}>
+        <Space direction="vertical" align="center">
+          <Spin size="large" />
+          <Typography.Text>Loading CVE information...</Typography.Text>
+        </Space>
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1500, margin: "40px auto", padding: 24 }}>
+      <Card style={{ maxWidth: 1500, margin: "40px auto", padding: 24 }}>
         <Alert
           message="Error Loading CVE Data"
           description={error}
           type="error"
           showIcon
-          style={{ margin: '20px 0' }}
         />
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div style={{ maxWidth: 1500, margin: "40px auto", padding: 24, background: '#e8e6e6', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+    <Card style={{ maxWidth: 1500, margin: "40px auto", padding: 24, background: '#e8e6e6', borderRadius: 16 }}>
       {cveData && (
         <Card
           bordered={false}
-          style={{
-            marginBottom: 24,
-            borderRadius: 12,
-            background: '#fff',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            padding: 0
-          }}
+          style={{ marginBottom: 24, borderRadius: 12, background: '#fff' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px 0 24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <SafetyOutlined style={{ fontSize: 36, color: '#1890ff' }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>
-                  {cveData.vuln_id} ({cveData.source?.toUpperCase()})
-                </div>
-                <div style={{ color: '#8c8c8c', fontSize: 15 }}>
-                  National Vulnerability Database
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-              <div style={{ color: '#8c8c8c', fontSize: 14, marginBottom: 0 }}>Severity</div>
-                <div style={{
-                  display: 'flex',
-                  background: getSeverityColor(cveData.severity),
-                  border: `2px solid ${getSeverityColor(cveData.severity)}`,
-                  borderRight: `2px solid ${getSeverityColor(cveData.severity)}`,
-                  color: getSeverityColor(cveData.severity),
-                  fontWeight: 700,
-                  fontSize: 15,
-                  height: 32,
-                  marginTop: 2
-                }}>
-                  <BugOutlined style={{ fontSize: 18, color: '#fff', background: getSeverityColor(cveData.severity), margin: '0 6px'}} />
-                  <span style={{ color: getSeverityColor(cveData.severity), background: '#fff', fontWeight: 700, fontSize: 16, padding: '0 4px', height: '100%', display: 'flex', alignItems: 'center' }}>
+          <Row align="middle" justify="space-between" style={{ padding: '18px 24px 0 24px' }}>
+            <Col>
+              <Space align="center" size={16}>
+                <SafetyOutlined style={{ fontSize: 36, color: '#1890ff' }} />
+                <Space direction="vertical" size={0}>
+                  <Typography.Title level={5} style={{ fontWeight: 700, fontSize: 20, color: '#222', margin: 0 }}>
+                    {cveData.vuln_id} ({cveData.source?.toUpperCase()})
+                  </Typography.Title>
+                  <Typography.Text style={{ color: '#8c8c8c', fontSize: 15 }}>
+                    National Vulnerability Database
+                  </Typography.Text>
+                </Space>
+              </Space>
+            </Col>
+            <Col>
+              <Space direction="vertical" align="end" size={4}>
+                <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>Severity</Typography.Text>
+                <Flex
+                  align="center"
+                  style={{ 
+                    background: getSeverityColor(cveData.severity), 
+                    border: `2px solid ${getSeverityColor(cveData.severity)}`, 
+                    borderRadius: 6,
+                    height: 32,
+                    marginTop: 2
+                  }}
+                >
+                  <BugOutlined style={{ fontSize: 18, color: '#fff', background: getSeverityColor(cveData.severity), margin: '0 6px', borderRadius: 4 }} />
+                  <Typography.Text
+                    style={{ 
+                      color: getSeverityColor(cveData.severity), 
+                      background: '#fff', 
+                      fontWeight: 700, 
+                      fontSize: 16, 
+                      padding: '0 4px', 
+                      height: '100%', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      borderRadius: 4 
+                    }}
+                  >
                     {cveData.severity && cveData.severity.charAt(0).toUpperCase() + cveData.severity.slice(1)}
-                  </span>
-                </div>
-            </div>
-          </div>
-          <div style={{ color: '#8c8c8c', fontSize: 15, margin: '4px 24px 0 24px', textAlign: 'right' }}>
+                  </Typography.Text>
+                </Flex>
+              </Space>
+            </Col>
+          </Row>
+          <Typography.Text style={{ color: '#8c8c8c', fontSize: 15, margin: '4px 24px 0 24px', textAlign: 'right', display: 'block' }}>
             Published: {new Date(cveData.published).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
               day: 'numeric'
             })}
-          </div>
+          </Typography.Text>
         </Card>
       )}
       
@@ -141,6 +151,6 @@ export default function CVEPage() {
         items={tabItems}
         tabBarStyle={{ fontWeight: 600, fontSize: 24 }}
       />
-    </div>
+    </Card>
   );
 }
